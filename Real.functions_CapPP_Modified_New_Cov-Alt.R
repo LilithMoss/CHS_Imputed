@@ -99,7 +99,7 @@ run.CO_DF2 <- function(CC1,VCC,CO1,VCO){
 #(Joint-BMA)
 run.glib3 <- function(Dat=NULL, models=rbind( c(1,1,1,1,1,1,1), c(1,1,1,0,1,1,1)), pmw=rep(1, nrow(models)), alt.models=c(1)){
   pmw <- pmw/sum(pmw)  
-  X3 <- as.data.frame(model.matrix(as.formula(Count~E+G+E:G+Y+E:Y+G:Y+E:G:Y+cov1+Y:cov1+cov2+Y:cov2+cov3+Y:cov3+cov4+Y:cov4),data=Dat))[,-1]
+  X3 <- as.data.frame(model.matrix(as.formula(Count~E+G+E:G+Y+E:Y+G:Y+E:G:Y+cov1+Y:cov1+cov2+Y:cov2+cov4+Y:cov4),data=Dat))[,-1]
   r3 <- glib(X3,y=Dat$Count, error="poisson", link = "log", phi=c(1), psi=c(1000),models=models, pmw=pmw, priormean=rep(0, (ncol(X3)+1)),output.postvar=T)
   return(r3)
 }
@@ -107,9 +107,9 @@ run.glib3 <- function(Dat=NULL, models=rbind( c(1,1,1,1,1,1,1), c(1,1,1,0,1,1,1)
 run.BMA.Mult <- function(dat, returnResults=NULL, output.P.only=NULL, DSL=NULL) {
   if(sum(dat$Y)!=0 & sum(dat$G)!=0 & sum(dat$E)!=0 & sum(dat$G)!=nrow(dat) & nrow(dat)>150){
     
-    Dat3 <- as.data.frame(ftable(dat$Y,dat$G,dat$E,dat$cov1,dat$cov2,dat$cov3,dat$cov4)) 
-    names(Dat3) <- c("Y","G","E","cov1","cov2","cov3","cov4","Count") 
-    X3 <- as.data.frame(model.matrix(as.formula(Count~E+G+E:G+Y+E:Y+G:Y+E:G:Y+cov1+Y:cov1+cov2+Y:cov2+cov3+Y:cov3+cov4+Y:cov4),data=Dat3))[,-1]
+    Dat3 <- as.data.frame(ftable(dat$Y,dat$G,dat$E,dat$cov1,dat$cov2,dat$cov4)) 
+    names(Dat3) <- c("Y","G","E","cov1","cov2","cov4","Count") 
+    X3 <- as.data.frame(model.matrix(as.formula(Count~E+G+E:G+Y+E:Y+G:Y+E:G:Y+cov1+Y:cov1+cov2+Y:cov2+cov4+Y:cov4),data=Dat3))[,-1]
     len <- ncol(X3)
     co <- which(colnames(X3)=="E1:G1")
     main <- which(colnames(X3)=="G1:Y1")

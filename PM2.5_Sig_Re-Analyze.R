@@ -14,10 +14,14 @@
 # 19	rs12980282
 # 19	rs2335626
 # 19	rs2288890
+mainDir <- "/auto/pmd-01/chemenya/CHS/"
 pm2.5 <- c("rs11705133","rs11703393","rs6866110","rs12980282") #chr: 22,22,5,19 
 hisp <- c("rs4672623","rs73351224","chr8:3242613:D","rs75265348") #chr: 2,14,8,1
 search_path <- "/home/pmd-01/chemenya/CHS/Split_Imputed_Results/"
-G_path <- search_path
+G_path <- "/home/pmd-01/chemenya/CHS/Split_Imputed_Results/Calls_0.5/" #Path where rds files are
+hisp_path <- "/home/pmd-01/chemenya/CHS/asthma/Imputed/Summary/Calls_0.5/"
+source(paste0(mainDir,"Real.functions_CapPP_Modified_New_Cov.R"))
+
 I_ge = 0.5
 I_g = 0.5 
 I_gxe = 0.5
@@ -142,10 +146,9 @@ cov.matched <- cov[match(fam$IID,cov$IID),]
 phen.matched <- phen[match(fam$IID,phen$IID),]
 
 #Create useful Covariate file with only relevant variables
-#With Hispanicity
 Cov <- data.frame( cbind(cov.matched$male,cov.matched$afr,cov.matched$natam,
-                         cov.matched$asian,cov.matched$ses,cov.matched$hw) )
-names(Cov) <- c("male","afr","natam","asian","ses","hw")
+                         cov.matched$asian,cov.matched$ses,cov.matched$hw) ) #12.6.2016 - Changed to include HW
+names(Cov) <- c("male","afr","natam","asian","ses","hw") #12.6.2016 - Changed to include HW
 
 #Assign Vectors
 # E <- cov.matched$hw #Environmental Factor = hispanic whites
@@ -161,6 +164,7 @@ Cov$natam3 <- ifelse(Cov$natam>0.5,1,0)
 cov2 <- Cov$natam2
 cov3 <- Cov$natam3
 cov4 <- Cov$hw
+ses <- Cov$ses
 
 tab.pm2.5 <- lapply(1:4,function(i){
   dat <- readRDS(paste0(G_path,"G.chr",pm2.5.sig[i,1],".",pm2.5.sig[i,3]))
@@ -172,6 +176,30 @@ tab.pm2.5 <- lapply(1:4,function(i){
   dat.1 <- as.data.frame( cbind(Y,G,E,cov1,cov2,cov3,cov4) )
   colnames(dat.1)[2] <- "G" 
   Dat <- dat.1[complete.cases(dat.1),]
+  
+  #alternative dataset - Testing
+  alt.dat.1 <- as.data.frame( cbind(Y,G,E,cov1,cov2,cov3,cov4,ses))
+  colnames(alt.dat.1)[2] <- "G" 
+  alt.Dat <- alt.dat.1[complete.cases(alt.dat.1),]
+  
+  summary(glm(Y~G,dat=Dat,family="binomial"))
+  summary(glm(Y~G,dat=alt.Dat,family="binomial"))
+  
+  summary(glm(Y~G,dat=Dat,subset=cov3==1,family="binomial"))
+  summary(glm(Y~G,dat=Dat,subset=cov3==0,family="binomial"))
+  
+  tab = table(Dat.new$cov3,Dat.new$Y)
+  addmargins(tab)
+  
+  Dat.nhw <- Dat[Dat$cov3==0,]
+  run.BMA.Mult(Dat.nhw,T,F,F)
+  run.BMA.Mult(Dat,T,F,F)
+  
+  exclude <- c(154,556,637,853,869,896,1142,1157,1253,1453,1535,1594,1625,1942,
+               1985,1993,2015,2110,2291,2384,2408,2602,2728,2819,2828)
+  dat.ex <- Dat[-exclude,]
+  
+  
   
   #Get Cell Counts
   cell.counts <- as.data.frame(ftable(Dat$Y,Dat$G,Dat$E,Dat$cov1,Dat$cov2,Dat$cov3,Dat$cov4))
